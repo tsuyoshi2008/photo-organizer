@@ -1,0 +1,61 @@
+.organize-button-container {
+  margin: 2rem 0;
+}
+
+.organize-button-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.organize-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 2.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  width: 100%;
+}
+
+.organize-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.organize-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.organize-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.organize-btn .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.organize-description {
+  margin-top: 1rem;
+  color: #666;
+  font-size: 0.95rem;
+  text-align: center;
+}
