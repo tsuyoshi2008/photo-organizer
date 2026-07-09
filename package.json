@@ -26,9 +26,8 @@
     "react-build": "react-scripts build",
     "electron-start": "wait-on http://localhost:3000 && electron .",
     "start": "concurrently \"npm run react-start\" \"npm run electron-start\"",
-    "build": "npm run react-build && electron-builder --win",
-    "build-mac": "npm run react-build && electron-builder --mac",
-    "build-linux": "npm run react-build && electron-builder --linux",
+    "build": "npm run react-build && electron-builder --win --publish=never",
+    "build-portable": "npm run react-build && electron-builder --win --portable --publish=never",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -52,17 +51,31 @@
     "files": [
       "build/**/*",
       "public/electron.js",
-      "public/preload.js",
-      "node_modules/**/*"
+      "public/preload.js"
     ],
-    "directories": {
-      "buildResources": "public"
-    },
     "win": {
       "target": [
-        "nsis",
-        "portable"
-      ]
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "buildResources": "public",
+      "output": "dist"
     }
   }
 }
