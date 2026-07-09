@@ -54,7 +54,7 @@ async function getPhotoInfo(filePath) {
       path: filePath,
       size: stats.size,
       date: date.toISOString(),
-      year: date.getFullYear(),
+      year: String(date.getFullYear()),
       month: String(date.getMonth() + 1).padStart(2, '0'),
       day: String(date.getDate()).padStart(2, '0'),
     };
@@ -105,8 +105,8 @@ async function organizePhotos(sourceFolder, destFolder) {
         const photoInfo = await getPhotoInfo(filePath);
         const { year, month, day } = photoInfo;
 
-        // 移動先フォルダを作成
-        const destFolderPath = path.join(outputFolder, year, month, day);
+        // 移動先フォルダを作成（year, month, day を文字列として扱う）
+        const destFolderPath = path.join(outputFolder, String(year), String(month), String(day));
         await fs.mkdir(destFolderPath, { recursive: true });
 
         // ファイルを移動
