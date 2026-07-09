@@ -6,8 +6,8 @@ let mainWindow;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -48,11 +48,18 @@ ipcMain.handle('select-folder', async () => {
   return result.filePaths[0] || null;
 });
 
+ipcMain.handle('select-output-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+  });
+  return result.filePaths[0] || null;
+});
+
 ipcMain.handle('organize-photos', async (event, args) => {
   try {
-    const { sourceFolder } = args;
+    const { sourceFolder, outputFolder } = args;
     const photoOrganizer = require('./photo-organizer');
-    const result = await photoOrganizer.organizePhotos(sourceFolder);
+    const result = await photoOrganizer.organizePhotos(sourceFolder, outputFolder);
     return { success: true, data: result };
   } catch (error) {
     return { success: false, error: error.message };
@@ -64,6 +71,26 @@ ipcMain.handle('get-photo-info', async (event, filePath) => {
     const photoOrganizer = require('./photo-organizer');
     const info = await photoOrganizer.getPhotoInfo(filePath);
     return { success: true, data: info };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('get-directory-tree', async (event, dirPath) => {
+  try {
+    const photoOrganizer = require('./photo-organizer');
+    const tree = await photoOrganizer.getDirectoryTree(dirPath);
+    return { success: true, data: tree };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('get-directory-files', async (event, dirPath) => {
+  try {
+    const photoOrganizer = require('./photo-organizer');
+    const files = await photoOrganizer.getDirectoryFiles(dirPath);
+    return { success: true, data: files };
   } catch (error) {
     return { success: false, error: error.message };
   }

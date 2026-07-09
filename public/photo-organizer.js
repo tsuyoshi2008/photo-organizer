@@ -66,7 +66,7 @@ async function getPhotoInfo(filePath) {
 /**
  * 写真を撮影日ごとにフォルダに振り分け
  */
-async function organizePhotos(sourceFolder) {
+async function organizePhotos(sourceFolder, destFolder) {
   const results = {
     total: 0,
     moved: 0,
@@ -81,6 +81,10 @@ async function organizePhotos(sourceFolder) {
     if (!stats.isDirectory()) {
       throw new Error('ソースフォルダが見つかりません');
     }
+
+    // 出力フォルダの存在確認・作成
+    const outputFolder = destFolder || sourceFolder;
+    await fs.mkdir(outputFolder, { recursive: true });
 
     // フォルダ内の全ファイルを取得
     const files = await fs.readdir(sourceFolder, { withFileTypes: true });
@@ -102,11 +106,11 @@ async function organizePhotos(sourceFolder) {
         const { year, month, day } = photoInfo;
 
         // 移動先フォルダを作成
-        const destFolder = path.join(sourceFolder, year, month, day);
-        await fs.mkdir(destFolder, { recursive: true });
+        const destFolderPath = path.join(outputFolder, year, month, day);
+        await fs.mkdir(destFolderPath, { recursive: true });
 
         // ファイルを移動
-        const destPath = path.join(destFolder, file.name);
+        const destPath = path.join(destFolderPath, file.name);
         await fs.rename(filePath, destPath);
 
         results.moved++;
@@ -129,8 +133,71 @@ async function organizePhotos(sourceFolder) {
   return results;
 }
 
+/**
+ * フォルダツリーを取得
+ */
+async function getDirectoryTree(dirPath, maxDepth = 3, currentDepth = 0) {
+  if (currentDepth >= maxDepth) return null;
+
+  try {
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+    const tree = {
+      name: path.basename(dirPath),
+      path: dirPath,
+      type: 'directory',
+      children: [],
+    };
+
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item.name);
+      
+      if (item.isDirectory()) {
+        const subTree = await getDirectoryTree(itemPath, maxDepth, currentDepth + 1);
+        if (subTree) {
+          tree.children.push(subTree);
+        }
+      }
+    }
+
+    return tree;
+  } catch (error) {
+    console.error(`Error reading directory ${dirPath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * フォルダ内のファイル一覧を取得
+ */
+async function getDirectoryFiles(dirPath) {
+  try {
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+    const files = [];
+
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item.name);
+      const stats = await fs.stat(itemPath);
+
+      files.push({
+        name: item.name,
+        path: itemPath,
+        type: item.isDirectory() ? 'directory' : 'file',
+        size: stats.size,
+        modified: stats.mtime.toISOString(),
+      });
+    }
+
+    return files;
+  } catch (error) {
+    console.error(`Error reading directory ${dirPath}:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
   getPhotoDate,
   getPhotoInfo,
   organizePhotos,
+  getDirectoryTree,
+  getDirectoryFiles,
 };
