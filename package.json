@@ -26,7 +26,9 @@
     "react-build": "react-scripts build",
     "electron-start": "wait-on http://localhost:3000 && electron .",
     "start": "concurrently \"npm run react-start\" \"npm run electron-start\"",
-    "build": "npm run react-build && electron-builder",
+    "build": "npm run react-build && electron-builder --win",
+    "build-mac": "npm run react-build && electron-builder --mac",
+    "build-linux": "npm run react-build && electron-builder --linux",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -60,18 +62,6 @@
       "target": [
         "nsis",
         "portable"
-      ]
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
       ]
     }
   }
