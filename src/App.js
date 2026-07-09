@@ -1,54 +1,28 @@
 import React, { useState } from 'react';
 import './App.css';
-import FolderSelector from './components/FolderSelector';
-import OutputFolderSelector from './components/OutputFolderSelector';
 import DirectoryTree from './components/DirectoryTree';
 import FileList from './components/FileList';
-import PhotoPreview from './components/PhotoPreview';
 import OrganizeButton from './components/OrganizeButton';
 import ResultsDisplay from './components/ResultsDisplay';
+import { FiFolder } from 'react-icons/fi';
 
 function App() {
   const [selectedFolder, setSelectedFolder] = useState(null);
-  const [outputFolder, setOutputFolder] = useState(null);
   const [selectedTreeNode, setSelectedTreeNode] = useState(null);
   const [treeData, setTreeData] = useState(null);
   const [fileList, setFileList] = useState([]);
-  const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleFolderSelect = async (folderPath) => {
-    setSelectedFolder(folderPath);
-    setError(null);
-    setPhotos([]);
-    setResults(null);
-    setSelectedTreeNode(null);
-    setFileList([]);
-    await loadPhotoPreview(folderPath);
-  };
-
-  const handleOutputFolderSelect = async (folderPath) => {
-    setOutputFolder(folderPath);
-    setError(null);
-    setSelectedTreeNode(null);
-    setFileList([]);
-    await loadDirectoryTree(folderPath);
-  };
-
-  const loadPhotoPreview = async (folderPath) => {
-    setLoading(true);
-    try {
-      const response = await window.electron.getPhotoInfo(folderPath);
-      if (response.success) {
-        setPhotos([response.data]);
-      }
-    } catch (err) {
-      setError('写真情報の読み込みに失敗しました');
-      console.error(err);
-    } finally {
-      setLoading(false);
+  const handleFolderSelect = async () => {
+    const folder = await window.electron.selectFolder();
+    if (folder) {
+      setSelectedFolder(folder);
+      setError(null);
+      setSelectedTreeNode(null);
+      setFileList([]);
+      await loadDirectoryTree(folder);
     }
   };
 
@@ -91,7 +65,7 @@ function App() {
 
   const handleOrganize = async () => {
     if (!selectedFolder) {
-      setError('ソースフォルダを選択してください');
+      setError('フォルダを選択してください');
       return;
     }
 
@@ -99,7 +73,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await window.electron.organizePhotos(selectedFolder, outputFolder);
+      const response = await window.electron.organizePhotos(selectedFolder, selectedFolder);
       if (response.success) {
         setResults(response.data);
       } else {
@@ -125,69 +99,72 @@ function App() {
           {error && <div className="error-message">{error}</div>}
 
           {!results ? (
-            <div className="content-wrapper">
-              <div className="left-panel">
-                <FolderSelector
-                  selectedFolder={selectedFolder}
-                  onSelect={handleFolderSelect}
+            <>
+              <div className="folder-selector-bar">
+                <button
+                  onClick={handleFolderSelect}
                   disabled={loading}
-                />
-
+                  className="select-folder-button"
+                >
+                  <FiFolder size={20} />
+                  フォルダを選択
+                </button>
                 {selectedFolder && (
-                  <>
-                    <PhotoPreview photos={photos} loading={loading} />
-                  </>
+                  <span className="selected-folder-display">{selectedFolder}</span>
                 )}
               </div>
 
-              <div className="right-panel">
-                <OutputFolderSelector
-                  selectedFolder={outputFolder}
-                  onSelect={handleOutputFolderSelect}
-                  disabled={loading}
-                />
-
-                {outputFolder && treeData && (
-                  <div className="tree-container">
-                    <DirectoryTree
-                      data={treeData}
-                      onNodeSelect={handleTreeNodeSelect}
-                      selectedNode={selectedTreeNode}
-                    />
+              {selectedFolder && (
+                <div className="split-view">
+                  <div className="left-panel">
+                    {treeData && (
+                      <DirectoryTree
+                        data={treeData}
+                        onNodeSelect={handleTreeNodeSelect}
+                        selectedNode={selectedTreeNode}
+                      />
+                    )}
                   </div>
-                )}
 
-                {selectedTreeNode && fileList.length > 0 && (
-                  <div className="file-list-container">
-                    <h3>📁 ファイル一覧</h3>
-                    <FileList files={fileList} />
+                  <div className="right-panel">
+                    {selectedTreeNode && fileList.length > 0 && (
+                      <FileList files={fileList} />
+                    )}
+                    {selectedTreeNode && fileList.length === 0 && (
+                      <div className="empty-state">
+                        <p>このフォルダは空です</p>
+                      </div>
+                    )}
+                    {!selectedTreeNode && (
+                      <div className="empty-state">
+                        <p>左のツリーからフォルダを選択してください</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
+
+              {selectedFolder && !results && (
+                <div className="organize-button-container">
+                  <OrganizeButton
+                    onClick={handleOrganize}
+                    disabled={loading || !selectedFolder}
+                    loading={loading}
+                  />
+                </div>
+              )}
+            </>
           ) : (
             <ResultsDisplay
               results={results}
               onReset={() => {
                 setResults(null);
                 setSelectedFolder(null);
-                setOutputFolder(null);
-                setPhotos([]);
                 setTreeData(null);
                 setFileList([]);
                 setSelectedTreeNode(null);
               }}
             />
-          )}
-
-          {selectedFolder && !results && (
-            <div className="organize-button-container">
-              <OrganizeButton
-                onClick={handleOrganize}
-                disabled={loading || !selectedFolder}
-                loading={loading}
-              />
-            </div>
           )}
         </div>
       </main>
