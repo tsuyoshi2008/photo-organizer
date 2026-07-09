@@ -26,8 +26,8 @@
     "react-build": "react-scripts build",
     "electron-start": "wait-on http://localhost:3000 && electron .",
     "start": "concurrently \"npm run react-start\" \"npm run electron-start\"",
-    "build": "npm run react-build && electron-builder --win --config.win.certificateFile=null --config.win.sign=null",
-    "build-portable": "npm run react-build && electron-builder --win --portable --config.win.certificateFile=null --config.win.sign=null",
+    "build": "npm run react-build && electron-builder --win",
+    "build-portable": "npm run react-build && electron-builder --win --portable",
     "clean-cache": "rmdir /s /q \"%LOCALAPPDATA%\\electron-builder\" 2>nul || echo Cache not found",
     "build-clean": "npm run clean-cache && npm run build",
     "eject": "react-scripts eject"
@@ -58,12 +58,6 @@
     "win": {
       "target": [
         "portable"
-      ],
-      "certificateFile": null,
-      "certificatePassword": null,
-      "sign": null,
-      "signingHashAlgorithms": [
-        "sha256"
       ]
     },
     "directories": {
